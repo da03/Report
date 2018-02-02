@@ -100,13 +100,12 @@ in production contexts.
 % enough to be used production contexts. 
 
 Currently there are several existing NMT implementations. Many systems
-such as those developed in industry by Google, Microsoft, and Baidu,
-are closed source, and are unlikely to be released with unrestricted
+such as those developed in industry by Google, Microsoft, and Baidu, are unlikely to be released with unrestricted
 licenses. Many other systems such as \textit{GroundHog},
-\textit{Blocks}, \textit{tensorflow-seq2seq}, \textit{lamtram}, and
+\textit{Blocks}, \textit{tensorflow-seq2seq}, \textit{tensorflow-nmt}, \textit{Tensor2Tensor}, \textit{Sockeye}, \textit{Neural Monkey}, \textit{lamtram}, and
 our own \textit{seq2seq-attn}, exist mostly as research code. These
 libraries provide important functionality but minimal support to
-production users. Perhaps most promising is the University of
+production users. On the other hand, there exist production systems such as \textit{Marian} that are efficient for production but unamenable for research purposes. Perhaps most promising is the University of
 Edinburgh's \textit{Nematus} system originally based on NYU's NMT
 system. Nematus provides high-accuracy translation, many options,
 clear documentation, and has been used in several successful research
@@ -276,6 +275,8 @@ internal buffers between clones. The potential shared buffers are
 dynamically calculated by exploration of the network graph before
 starting training. In practical use, aggressive memory reuse provides
 a saving of 70\% of GPU memory with the default model size.
+
+\paragraph{Sharding}
 
 \paragraph{Multi-GPU} OpenNMT additionally supports multi-GPU training
 using data parallelism. Each GPU has a replica of the master
