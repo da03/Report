@@ -113,14 +113,13 @@ the NLP community in academia and industry.
 With these goals in mind, we introduce \textit{OpenNMT}
 (\url{http://opennmt.net}), an open-source toolikit for neural machine translation. Since its launch in December 2016, OpenNMT has become a collection of implementations targeting both academia and industry. The systems are designed to be simple to use and easy to extend, while maintaining efficiency and state-of-the-art accuracy. In
 addition to providing code for the core translation tasks, OpenNMT was
-designed with three aims: (a) prioritize first training and test
-efficiency, (b) maintain model modularity and readability, (c) support
-significant research extensibility.
+designed with two aims: (a) prioritize training and test
+efficiency, (b) maintain model modularity and readability hence research extensibility.
 
 This engineering report describes how the system targets these
 criteria. We begin by briefly surveying the background for NMT,
 describing the high-level implementation details, and then describing
-specific case studies for the three criteria.  We end by showing
+specific case studies for the two criteria.  We end by showing
 benchmarks of the system in terms of accuracy, speed, and memory usage
 for several translation and translation-like tasks.
 
@@ -247,9 +246,6 @@ tokenization and detokenization tools.
   \caption{\small Performance numbers in source tokens per second for the Torch CPU/GPU implementations and for 
   the  multi-threaded CPU C implementation. (Run with Intel i7/GTX 1080)}
 \end{table}
-As the low-level details of NMT have been covered previously, we focus
-this report on the design goals of OpenNMT: system efficiency and code modularity.
-
 \subsection{System Efficiency}
 
 As NMT systems can take from days to weeks to train, training
@@ -320,9 +316,9 @@ We targeted this goal by explicitly separating training, optimization and differ
 the code. A schematic overview of our data structures is shown in Figure~\ref{fig:codestruct}. We provide users with simple interfaces \textit{preprocess}, \textit{train} and \textit{translate}, which only require source/target files as input, while we provide a highly modularized library for advanced users. Each module in the library is highly customizable and configurable with multiple ready-for-use features, and we strive to update OpenNMT to reflect the latest research advances in the field.
 
 \paragraph{Data Types} In addition to plain text, OpenNMT also supports input with discrete features \citep{sennrich2016linguistic}, as well as non-textual data such as image and speech. 
-\paragraph{Model Types} OpenNMT implements various model types. On the encoder side in addition to RNN we also support CNN \citep{gehring2017convolutional}, Transformer \citep{vaswani2017attention}, image encoder \citep{DBLP:conf/conll/BowmanVVDJB16,DBLP:journals/corr/DengKR16} and audio encoder \citep{DBLP:journals/corr/ChanJLV15}. Likewise on the decoder side we also support CNN and Transformer. OpenNMT implemented variaous attention types including general, dot product, and concatenation \citep{luong2015effective,britz2017massive}.
-We also implemented copy mechanism \citep{vinyals2015pointer,gu2016incorporating}, which is widely used in document summarization tasks.
-\paragraph{Translation Constraints} In addition to out-of-vocabulary (OOV) symbol handling \citep{Luong2015b}, OpenNMT also allows beam search with various normalizations including length and attention coverage normalization \citep{wu2016google}. We also provide interface for customized hypothesis filtering, enabling beam search under various constraints such as maximum number of OOV's and lexical constraints.
+\paragraph{Model Types} OpenNMT implements various model types. On the encoder side in addition to RNN we also support CNN \citep{gehring2017convolutional}, Transformer \citep{vaswani2017attention}, image encoder \citep{DBLP:conf/conll/BowmanVVDJB16,DBLP:journals/corr/DengKR16} and audio encoder \citep{DBLP:journals/corr/ChanJLV15}. Likewise on the decoder side we also support CNN and Transformer. OpenNMT implements various attention types including general, dot product, and concatenation \citep{luong2015effective,britz2017massive}.
+We also implemented copy mechanism \citep{vinyals2015pointer,gu2016incorporating}, which is widely used in document summarization.
+\paragraph{Translation Constraints} In addition to out-of-vocabulary (OOV) handling \citep{Luong2015b}, OpenNMT also allows beam search with various normalizations including length and attention coverage normalization \citep{wu2016google}. We also provide interface for customized hypothesis filtering, enabling beam search under various constraints such as maximum number of OOV's and lexical constraints.
 
 
 Due to the deliberate modularity of our code, OpenNMT is readily extensible for novel feature development. As one example, by substituting the attention module, we can arrive at local attention \citep{Luong2015}, sparse-max attention
@@ -370,9 +366,7 @@ OpenNMT provides many additional tools that make it more beneficial to the resea
 
 \section{Benchmarks}
 
-
-
-We now document some runs of the model. OpenNMT achieves competitive results against other systems, e.g. in the recent WMT 2017 translation task, we got 3rd place in English-German translation with a single model as shown in Table~\ref{tab:wmt}. We expect performance and
+OpenNMT achieves competitive results against other systems, e.g. in the recent WMT 2017 translation task, we got the third place in English-German translation with a single model as shown in Table~\ref{tab:wmt}. We expect performance and
 memory usage to improve with further development.  Public benchmarks
 are available at \url{http://opennmt.net/Models/}, which also includes
 publicly available pre-trained models for all of these tasks and
@@ -391,7 +385,7 @@ available \textit{Nematus} system.
 
 
 Additionally we have found interest from the community in using
-OpenNMT for non-standard MT tasks like sentence document summarization
+OpenNMT for non-standard MT tasks like sentence document summarization and
 dialogue response generation (chatbots), among others.  Using
 OpenNMT, we were able to replicate the sentence summarization results
 of \citet{chopra2016abstractive}, reaching a ROUGE-1 score of 33.13 on
