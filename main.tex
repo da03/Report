@@ -15,12 +15,12 @@
 \newcommand{\confname}{MT Summit 2015}
 \newcommand{\website}{\protect\url{http://www.amtaweb.org/}}
 \newcommand{\contactname}{research track co-chair Yaser Al-Onaizan}
-\newcommand{\contactemail}{onaizan@us.ibm.com} 
+\newcommand{\contactemail}{onaizan@us.ibm.com}
 \newcommand{\conffilename}{mtsummit2015}
 \newcommand{\downloadsite}{\protect\url{http://www.amtaweb.org/}}
 \newcommand{\paperlength}{$12$ (twelve)}
 \newcommand{\shortpaperlength}{$6$ (six)}
-\newcommand\newcite{\citet}	% to get "Author (Year)" with natbib    
+\newcommand\newcite{\citet}	% to get "Author (Year)" with natbib
 
 %% do not add any other page- or text-size instruction here
 
@@ -29,13 +29,15 @@
 \begin{document}
 
 % \mtsummitHeader{x}{x}{xxx-xxx}{2015}{45-character paper description goes here}{Author(s) initials and last name go here}
-\title{\bf OpenNMT: Open-Source Toolkit for Neural Machine Translation}  
+\title{\bf OpenNMT: Neural Machine Translation Toolkit}
 
 \author{\name{\bf Guillaume Klein} \hfill \addr{SYSTRAN}
 \AND
         \name{\bf Yoon Kim} \hfill \addr{Harvard University}
 \AND
        \name{\bf Yuntian Deng} \hfill \addr{Harvard University}
+        \AND
+       \name{\bf Vincent Nguyen} \hfill \addr{Ubiqus}
         \AND
        \name{\bf Jean Senellart} \hfill \addr{SYSTRAN}
         \AND
@@ -46,14 +48,16 @@
 \pagestyle{empty}
 
 \begin{abstract}
-  We describe an open-source toolkit for neural machine translation
-  (NMT).  The toolkit prioritizes efficiency, modularity, and
+  OpenNMT is an open-source toolkit for neural machine translation
+  (NMT).  The system prioritizes efficiency, modularity, and
   extensibility with the goal of supporting NMT research into model
   architectures, feature representations, and source modalities, while
   maintaining competitive performance and reasonable training
-  requirements. The toolkit consists of modeling and translation support,
-  as well as detailed pedagogical documentation about the underlying
-  techniques.
+  requirements. The toolkit consists of modeling and translation
+  support, as well as detailed pedagogical documentation about the
+  underlying techniques. OpenNMT has been used in several production
+  MT systems, modified for numerous research papers, and is
+  implemented across several deep learning frameworks.
 \end{abstract}
 
 \section{Introduction}
@@ -89,7 +93,7 @@ in production contexts.
     \subfigure[]{%
     \includegraphics[width=0.5\textwidth]{demo2}%
     \label{fig:live}%
-  }%  
+  }%
   \caption{\small (a). Schematic view of neural machine translation. The \textcolor{red}{red} source words are first mapped to word vectors and then fed into a recurrent neural network (RNN). Upon seeing the $\langle$eos$\rangle$ symbol, the final time step initializes a target \textcolor{blue}{blue} RNN. At each target time step, \textit{attention} is applied over the source RNN and combined with the current hidden state to produce a prediction $p(w_t| w_{1: t-1}, x)$ of the next word. This prediction is then fed back into the target RNN. (b). Live demo of the OpenNMT system across dozens of language pairs.}
   \label{fig:ab}
 \end{figure*}
@@ -100,21 +104,32 @@ addition to providing code for the core translation tasks, OpenNMT was
 designed with two aims: (a) prioritize training and test
 efficiency, (b) maintain model modularity and readability hence research extensibility.
 
-We want to note that there are many other open-source NMT implementations released before or since the launch of OpenNMT, such as \textit{GroundHog},
-\textit{Blocks}, \textit{tensorflow-seq2seq}, \textit{tensorflow-nmt}, \textit{Tensor2Tensor}, \textit{Sockeye}, \textit{Neural Monkey}, \textit{lamtram}, \textit{XNMT}, \textit{SGNMT}, \textit{Marian} and \textit{Nematus}. In the ongoing development of this project, we aim to build upon
-the strengths of those systems, providing the NLP community in academia and industry a useful open-source NMT framework with high-accuracy translation, multiple options and clear documentation.
+During this time, many other stellar open-source NMT implementations
+have also been released, including \textit{GroundHog},
+\textit{Blocks}, \textit{Nematus}, \textit{tensorflow-seq2seq},
+\textit{tensorflow-nmt}, \textit{fair-seq},  \textit{Tensor2Tensor}, \textit{Sockeye},
+\textit{Neural Monkey}, \textit{lamtram}, \textit{XNMT},
+\textit{SGNMT}, and \textit{Marian}. These projects mostly implement
+variants of the same underlying systems, and differ in their
+prioritization of different features. The open-source community around
+this area is flourishing, and is providing the NLP community in
+academia and industry a useful variety of open-source NMT framework.
+In the ongoing development of OpenNMT, we aim to build upon the
+strengths of those systems, while supporting a framework with
+high-accuracy translation, multiple options and clear documentation.
 
-This engineering report describes how the system targets our design goals. We begin by briefly surveying the background for NMT, and then
-describing the high-level implementation details.  We end by showing
+This engineering report describes how the system targets our design
+goals. We begin by briefly surveying the background for NMT, and then
+describing the high-level implementation details. We end by showing
 benchmarks of the system in terms of accuracy, speed, and memory usage
-for several translation and translation-like tasks.
+for several translation and natural language generation tasks.
 
 \section{Background}
 
 NMT has now been extensively described in many
 excellent tutorials (see for instance
 \url{https://sites.google.com/site/acl16nmt/home}). We give only
-a condensed overview. 
+a condensed overview.
 
 NMT takes a conditional language modeling view of translation by modeling the
 probability of a target sentence $w_{1:T}$ given a source sentence
@@ -154,42 +169,48 @@ their inclusion in an NMT framework.
 
 \section{Implementation}
 
-OpenNMT is a complete library for training and deploying neural
-machine translation models. The system is successor to
-\textit{seq2seq-attn} developed at Harvard, and has been completely
-rewritten for ease of efficiency, readability, and
-generalizability. It includes vanilla NMT models along with support
-for attention, gating, stacking, input feeding, regularization, beam
-search and all other options necessary for state-of-the-art
-performance.  
+OpenNMT is a community of projects supporting easy adoption neural
+machine translation. At the heart of the project are libraries for
+training, using, and deploying neural machine translation models. The
+system was based originally on \textit{seq2seq-attn}, which was rewritten for ease of efficiency, readability, and
+generalizability. The project supports vanilla NMT models along with
+support for attention, gating, stacking, input feeding,
+regularization, copy models, beam search and all other options
+necessary for state-of-the-art performance.
 
-OpenNMT has currently three main implementations with the same API suiting different needs, and all of them are actively maintained:
+OpenNMT has currently three main implementations. All of them are actively maintained:
 
-\paragraph{OpenNMT-lua} The original project developed with LuaTorch.
-    Full-featured, optimized, and stable code ready for quick experiments and production.
-\paragraph{OpenNMT-py} An OpenNMT-lua clone using the more modern PyTorch.
-    Initially created by by Adam
-Lerer and the Facebook AI research team as an example, this implementation is easier to extend and particularly suited for research.
-\paragraph{OpenNMT-tf} A TensorFlow alternative.
-    It is a more recent project focusing on large scale experiments and high performance model serving using the latest TensorFlow features.
+\begin{itemize}
+\item \textit{OpenNMT-lua} The original project developed in Torch 7.
+  Full-featured, optimized, and stable code ready for quick
+  experiments and production.
+  \item \textit{OpenNMT-py} An OpenNMT-lua clone using PyTorch.
+    Initially created by by Adam Lerer and the Facebook AI research
+    team as an example, this implementation is easy to extend and
+    particularly suited for research.
+  \item \textit{OpenNMT-tf} An implementation following the style of
+    TensorFlow.  This is a more new project focusing on large scale
+    experiments and high performance model serving using the latest
+    TensorFlow features.
+\end{itemize}
+
+OpenNMT is developed completely in the open on GitHub at
+(\url{http://github.com/opennmt}) and is MIT licensed.  The initial
+release has primarily contributions from SYSTRAN Paris, the Harvard
+NLP group and Facebook AI research. Since official beta release, the
+project (OpenNMT-lua, OpenNMT-py and OpenNMT-tf) has been starred by
+over 2500 users in total, and there have been over 100 outside
+contributors. The project has an active forum for community feedback
+with over five hundred posts in the last two months. There is also a
+live demonstration available of the system in use
+(Figure~\ref{fig:live}).
 
 
-OpenNMT has been developed completely in the open on GitHub at
-(\url{http://github.com/opennmt}) and is MIT licensed.  The
-initial release has primarily (intercontinental) contributions from
-SYSTRAN Paris, the Harvard NLP group and Facebook AI research. Since official beta release,
-the project (OpenNMT-lua, OpenNMT-py and OpenNMT-tf) has been starred by over 2500 users in total, and there have been
-over 100 outside contributors. The
-project has an active forum for community feedback with over five
-hundred posts in the last two months. There is also a live
-demonstration available of the system in use (Figure~\ref{fig:live}).
-
-
-One nice aspect of NMT as a model is its relative compactness.
+One often overlooked benefit of  NMT compared to SMT is its relative compactness.
 OpenNMT-lua including preprocessing and model variants is roughly 16K lines of code,
 the PyTorch version is less than 4K lines and Tensorflow version has around 7K lines. For comparison the Moses SMT framework
 including language modeling is over 100K lines. This makes our system
-easy to completely understand for newcomers. The project is fully
+easy to completely understand for newcomers. Each project is fully
 self-contained depending on minimal number of external libraries
 and also includes some preprocessing, visualization and analysis tools.
 
@@ -197,8 +218,8 @@ and also includes some preprocessing, visualization and analysis tools.
 \section{Design Goals}
 \begin{figure}[t]
         \centering
-        \includegraphics[scale=0.36]{OpenNMTDiagram.png}
-        \caption{\label{fig:codestruct}Schematic overview of OpenNMT code}
+        \includegraphics[scale=0.3]{OpenNMTDiagram.png}
+        \caption{\label{fig:codestruct}Schematic overview of OpenNMT-py code}
         %\label{fig:opennmt-data}
     \end{figure}
 \subsection{System Efficiency}
@@ -231,7 +252,7 @@ resynchronization on each GPU for the following batch.  In
 asynchronous training, batches are run independent on each GPU, and
 independent gradients accumulated to the master copy of the
 parameters. Asynchronous SGD is known to provide faster convergence
-\citep{dean2012large}. Experiments with 8 GPUs show a 6$\times$ speed up in 
+\citep{dean2012large}. Experiments with 8 GPUs show a 6$\times$ speed up in
 per epoch, but a slight loss in training efficiency. When training to similar
 loss, it gives a 3.5$\times$ total speed-up to training.
 
@@ -263,28 +284,60 @@ different implementations based on batch size, beam size.
 
 A secondary goal was a desire for code readability and extensibility.
 We targeted this goal by explicitly separating training, optimization and different components of the model, and by including tutorial documentation within
-the code. A schematic overview of our data structures is shown in Figure~\ref{fig:codestruct}. We provide users with simple interfaces \textit{preprocess}, \textit{train} and \textit{translate}, which only require source/target files as input, while we provide a highly modularized library for advanced users. Each module in the library is highly customizable and configurable with multiple ready-for-use features, and we strive to update OpenNMT to reflect the latest research advances in the field.
-
-\paragraph{Data Types} In addition to plain text, OpenNMT also supports input with discrete features \citep{sennrich2016linguistic}, as well as non-textual data such as image and speech. 
-\paragraph{Model Types} OpenNMT implements various model types. On the encoder side in addition to RNN we also support CNN \citep{gehring2017convolutional}, Transformer \citep{vaswani2017attention}, image encoder \citep{DBLP:conf/conll/BowmanVVDJB16,DBLP:journals/corr/DengKR16} and audio encoder \citep{DBLP:journals/corr/ChanJLV15}. Likewise on the decoder side we also support CNN and Transformer. OpenNMT implements various attention types including general, dot product, and concatenation \citep{luong2015effective,britz2017massive}.
-We also implemented copy mechanism \citep{vinyals2015pointer,gu2016incorporating}, which is widely used in document summarization.
-\paragraph{Translation Constraints} In addition to out-of-vocabulary (OOV) handling \citep{Luong2015b}, OpenNMT also allows beam search with various normalizations including length and attention coverage normalization \citep{wu2016google}. We also provide interface for customized hypothesis filtering, enabling beam search under various constraints such as maximum number of OOV's and lexical constraints.
+the code. A schematic overview of our data structures in OpenNMT-py is shown in Figure~\ref{fig:codestruct}. We provide users with simple interfaces \textit{preprocess}, \textit{train} and \textit{translate}, which only require source/target files as input, while we provide a highly modularized library for advanced users.  Each module in the library is highly customizable and configurable with multiple ready-for-use features. Advanced users can access the modules directly through a library interface to construct and train variant of the standard NMT setup.
 
 
-Due to the deliberate modularity of our code, OpenNMT is readily extensible for novel feature development. As one example, by substituting the attention module, we can arrive at local attention \citep{Luong2015}, sparse-max attention
-\citep{martins2016softmax} and structured attention \citep{kim2017structured} with minimal change of code. As another example, in order to get feature-based factored neural translation \citep{sennrich2016linguistic} we simply need to modify the input network to process the feature-based representation, and the output network to produce multiple conditionally independent predictions. In addition to those thought experiments, in the real world, OpenNMT has been used for machine translation \citep{levin2017toward,ha2017effective,sharaf2017umd,sekizawa2017improving,ma2017osu}, parsing \citep{van2017neural}, document summarization \citep{ling2017coarse}, data-to-document \citep{wiseman2017challenges,gardent2017webnlg}, transliteration \citep{ameur2017arabic}, to name a few.
+\paragraph{Extensible Data, Models, and Search} In addition to plain text,
+OpenNMT also supports different input types including models with
+discrete features \citep{sennrich2016linguistic}, models with
+non-sequential input such as tables, continuous data such as speech
+signals, and multi-dimensional data such as images. To support these
+different input modalities the library implements image encoder and
+audio encoders \citep{DBLP:journals/corr/ChanJLV15}.  OpenNMT
+implements various attention types including general, dot product, and
+concatenation \citep{luong2015effective,britz2017massive}.  This also
+includes recent extensions to these standard modules such as the copy
+mechanism \citep{vinyals2015pointer,gu2016incorporating}, which is
+widely used in summarization and generation applications.
+
+The newer implementations of OpenNMT have also  been updated to
+include support for recent innovations in  non-recurrent translation models. In
+particular recent support has been added for convolution translation
+\citep{gehring2017convolutional} and the attention-only transformer
+network \citep{vaswani2017attention}.
+
+Finally the translation code allows for user customization.
+In addition to out-of-vocabulary
+(OOV) handling \citep{Luong2015b}, OpenNMT also allows beam search
+with various normalizations including length and attention coverage
+normalization \citep{wu2016google}, and dynamic dictionary support for
+copy/ pointer networks. We also provide interface for customized
+hypothesis filtering, enabling beam search under various constraints
+such as maximum number of OOV's and lexical constraints.
+
+\paragraph{Modularity}
+Due to the deliberate modularity of our code, OpenNMT is readily extensible for novel feature development. As one example, by substituting the attention module, we can implement local attention \citep{Luong2015}, sparse-max attention
+\citep{martins2016softmax} and structured attention \citep{kim2017structured} with minimal change of code. As another example, in order to get feature-based factored neural translation \citep{sennrich2016linguistic} we simply need to modify the input network to process the feature-based representation, and the output network to produce multiple conditionally independent predictions.
+
+We have seen instances of this use in published research. In addition
+machine translation
+\citep{levin2017toward,ha2017effective,sharaf2017umd,sekizawa2017improving,ma2017osu},
+researchers have employed OpenNMT for parsing \citep{van2017neural},
+document summarization \citep{ling2017coarse}, data-to-document
+\citep{wiseman2017challenges,gardent2017webnlg}, and transliteration
+\citep{ameur2017arabic}, to name a few of many applications.
 
 
-\subsection{Additional Tools}
+\paragraph{Additional Tools}
 
-OpenNMT provides many additional tools that make it more beneficial to the research community. A list of additional tools include: 1) reversible tokenizer, which can also perform Byte Pair Encoding (BPE) \citep{DBLP:journals/corr/SennrichHB15}; 2) loading and exporting word embeddings; 3) translation server which enables showcase results remotely; and 4) visualization tools for debugging or understanding, such as beam search visualization, profiler and TensorBoard/Crayon logging.
+OpenNMT packages several additional tools, including: 1) reversible tokenizer, which can also perform Byte Pair Encoding (BPE) \citep{DBLP:journals/corr/SennrichHB15}; 2) loading and exporting word embeddings; 3) translation server which enables showcase results remotely; and 4) visualization tools for debugging or understanding, such as beam search visualization, profiler and TensorBoard logging.
 
 \begin{table}
 \parbox{.48\linewidth}{
 \centering
 \begin{tabular}{ccccc}
     \toprule
-    Batch & Beam & GPU & CPU & CPU/C \\ 
+    Batch & Beam & GPU & CPU & CPU/C \\
     \midrule
     1  & 5 & 209.0 & 24.1 & 62.2\\
     1  & 1 & 166.9 & 23.3 & 84.9\\
@@ -293,7 +346,7 @@ OpenNMT provides many additional tools that make it more beneficial to the resea
 
     \bottomrule
   \end{tabular}
-  \caption{\label{tab:cpu} \small Performance numbers in source tokens per second for the Torch CPU/GPU implementations and for 
+  \caption{\label{tab:cpu} \small Performance numbers in source tokens per second for the Torch CPU/GPU implementations and for
   the  multi-threaded CPU C implementation. (Run with Intel i7/GTX 1080)}
 }
 \hfill
@@ -305,10 +358,10 @@ OpenNMT provides many additional tools that make it more beneficial to the resea
      &  & Train  & Trans  &  \\
     \midrule
  V=50k & Nematus  & 3393 & 284 & 17.28 \\
-     & ONMT  &4185 & 380 & 17.60 \\ 
-    \midrule 
+     & ONMT  &4185 & 380 & 17.60 \\
+    \midrule
   V=32k & Nematus & 3221& 252 & 18.25 \\
-    & ONMT &5254 & 457 & 19.34\\ 
+    & ONMT &5254 & 457 & 19.34\\
     \bottomrule
   \end{tabular}
 
@@ -347,7 +400,7 @@ The comparison, shown in Table~\ref{tab:res}, is on English-to-German
 (EN$\rightarrow$DE) using the WMT
 2015\footnote{\url{http://statmt.org/wmt15}} dataset. Here we compare,
 BLEU score, as well as training and test speed to the publicly
-available \textit{Nematus} system. 
+available \textit{Nematus} system.
 \footnote{\url{https://github.com/rsennrich/nematus}. Comparison with
   OpenNMT/Nematus github revisions {\tt 907824}/{\tt 75c6ab1}.}
 
@@ -379,13 +432,13 @@ sentences of the OpenSubtitles data set based on the work
 
 
 
-% Picture of demo application running 
+% Picture of demo application running
 
 \section{Conclusion}
 
 We introduce \textit{OpenNMT}, a research toolkit for NMT that
 prioritizes efficiency, modularity and extensibility. We hope to further develop
-OpenNMT to maintain strong MT results at the research frontier, 
+OpenNMT to maintain strong MT results at the research frontier,
 providing a stable and framework for production use.
 \newpage
 \small
