@@ -11,7 +11,7 @@
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{subfigure}
-
+\usepackage{multirow}
 \newcommand{\confname}{MT Summit 2015}
 \newcommand{\website}{\protect\url{http://www.amtaweb.org/}}
 \newcommand{\contactname}{research track co-chair Yaser Al-Onaizan}
@@ -107,7 +107,7 @@ efficiency, (b) maintain model modularity and readability hence research extensi
 During this time, many other stellar open-source NMT implementations
 have also been released, including \textit{GroundHog},
 \textit{Blocks}, \textit{Nematus}, \textit{tensorflow-seq2seq},
-\textit{tensorflow-nmt}, \textit{fair-seq},  \textit{Tensor2Tensor}, \textit{Sockeye},
+\textit{GNMT}, \textit{fair-seq},  \textit{Tensor2Tensor}, \textit{Sockeye},
 \textit{Neural Monkey}, \textit{lamtram}, \textit{XNMT},
 \textit{SGNMT}, and \textit{Marian}. These projects mostly implement
 variants of the same underlying systems, and differ in their
@@ -357,10 +357,10 @@ OpenNMT packages several additional tools, including: 1) reversible tokenizer, w
     Vocab & System & \multicolumn{2}{c}{Speed tok/sec}  & BLEU\\
      &  & Train  & Trans  &  \\
     \midrule
- V=50k & Nematus  & 3393 & 284 & 17.28 \\
+ \multirow{ 2}{*}{V=50k} & Nematus  & 3393 & 284 & 17.28 \\
      & ONMT  &4185 & 380 & 17.60 \\
     \midrule
-  V=32k & Nematus & 3221& 252 & 18.25 \\
+  \multirow{ 2}{*}{V=32k} & Nematus & 3221& 252 & 18.25 \\
     & ONMT &5254 & 457 & 19.34\\
     \bottomrule
   \end{tabular}
@@ -382,8 +382,57 @@ OpenNMT packages several additional tools, including: 1) reversible tokenizer, w
           \caption{\label{tab:wmt}Top 3 on English-German \emph{newstest2017}.}
 \end{table}
 
+\begin{table}
+\small
+\centering
+\begin{tabular}{cccccc}
+    \toprule
+    Paper & Dataset & Setting & System  & BLEU (alleged)\\
+    \midrule
+    \multirow{2}{*}{\cite{britz2017massive}} & \multirow{2}{*}{newstest14 en-de} & - &\textit{tensorflow-seq2seq}& (22.19) &  \\
+     &  & - &\textit{ONMT}& 21.84 (19.34) &  \\
+    \midrule
+    \multirow{4}{*}{\cite{hieber2017sockeye}} & \multirow{4}{*}{newstest17 en-de} & \multirow{ 2}{*}{GroundHog} & \textit{Sockeye}& (23.18) &  \\
+     &  &  & \textit{ONMT}& 23.62 (19.70) &  \\
+     &  & \multirow{ 2}{*}{Best} & \textit{Sockeye}& (25.55) &  \\
+     &  &  & \textit{ONMT}& 25.08 (22.69) &  \\
+    \bottomrule
+  \end{tabular}
 
+  \caption{ \small \label{tab:results-updated} OpenNMT's performance as reported by \cite{britz2017massive} and \cite{hieber2017sockeye} (bracketed) compared to our reiterated results with a good-faith effort to conform to the same settings. On newstest14 we used 2-layer bi-directional RNN with hidden size 512, embedding size 256 and dropout 0.1. For newstest17 GroundHog setting we used 1 layer bi-RNN of 1024 and embeddings of 512, while for best setting we used 2-layers bi-directional RNN of 1024, word embedding size 512, dropout 0.1 and maximum sequence length 100. We use default values for other options. Sockeye used label smoothing \citep{pereyra2017regularizing} and length penalty which might explain the slight performance difference.}
+\end{table}
 
+\begin{table}
+\parbox{.48\linewidth}{
+\centering
+\begin{tabular}{l cc}
+          \toprule
+            { System} & { newstest14}  & newstest15\\
+            \midrule
+            \textit{GNMT} 4 layers & 23.7 & 26.5 \\
+            \textit{GNMT} 8 layers & 24.4 & 27.6 \\
+            WMT reference & 20.6 & 24.9 \\
+            \textit{ONMT} & 23.2 & 26.0 \\
+            \bottomrule
+          \end{tabular}
+          \caption{\label{tab:results-google}Comparison with \textit{GNMT} on English-German \emph{newstest14} and \emph{newstest15}. \textit{ONMT} used 2-layers bi-directional RNN of 1024, word embedding size 512, dropout 0.1 and maximum sequence length 100.}
+}
+\hfill
+\parbox{.48\linewidth}{
+\centering
+\begin{tabular}{l cc}
+          \toprule
+            { System} & { newstest14}  & newstest17\\
+            \midrule
+            T2T  & 27.3 & 27.8 \\
+            ONMT Transformer& 26.8 & 28.0 \\
+            GNMT (rnn) & 24.6 & - \\
+            ONMT (rnn) & 23.2 & 25.1 \\
+            \bottomrule
+          \end{tabular}
+          \caption{\label{tab:results-transformer}Transformer Results on English-German newstest14 and newstest17. We used the same hyper-parameter as \cite{hieber2017sockeye} which corresponds to a 6-layer transformer with model size of 512.}
+}
+\end{table}
 
 \section{Benchmarks}
 
@@ -402,8 +451,9 @@ The comparison, shown in Table~\ref{tab:res}, is on English-to-German
 BLEU score, as well as training and test speed to the publicly
 available \textit{Nematus} system.
 \footnote{\url{https://github.com/rsennrich/nematus}. Comparison with
-  OpenNMT/Nematus github revisions {\tt 907824}/{\tt 75c6ab1}.}
+  OpenNMT/Nematus github revisions {\tt 907824}/{\tt 75c6ab1}.} We want to note that our default setting is not optimal, and that's the potential cause of the alleged poor performance of our system by \cite{britz2017massive} and \cite{hieber2017sockeye}. In response we trained models with our best effort to conform to their settings and report our results in Table~\ref{tab:results-updated}, which shows comparable performance with other systems. We suspect that the alleged poor performance of OpenNMT might be due to the fact our default setting discards sequences of length greater than 50, which might be sub-optimal for BPE, and our default SGD with learning rate decay generally outperforms ADAM without learning rate decay. 
 
+Towards state-of-the-art performance, we also compared our bigger model with \textit{GNMT-nmt} \citep{wu2016google} in Table~\ref{tab:results-google}. Since \cite{vaswani2017attention} established a new state-of-the-art, we implemented that in OpenNMT as well, and compare our system with \textit{Tensor2Tensor} (T2T) in Table~\ref{tab:results-transformer}.
 
 Additionally we have found interest from the community in using
 OpenNMT for non-standard MT tasks like sentence document summarization and
@@ -415,24 +465,6 @@ sentences of the OpenSubtitles data set based on the work
 \citet{vinyals2015neural}, achieving comparable perplexity.
 
 
-% which is remarkable since the corpus is completely parallel for
-% the 5 languages which means that for a given language pair, no
-% additional source or target sentence is presented to the system in
-% another language pair.
-
-
-
-
-
-
-%     Vocab 50k&  &  & 17.6/\\
-%     \midrule
-% BPE 32k&                &  & \\
-
-
-
-
-% Picture of demo application running
 
 \section{Conclusion}
 
